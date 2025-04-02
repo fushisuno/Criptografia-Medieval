@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scriptorium Secreto - Criptografia Medieval</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --parchment: #f5e7c1;
+            --ink: #3a3226;
+            --gold: #c9a227;
+            --red: #8b0000;
+            --border: #8b4513;
+        }
+        
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background-color: #d4c9a8;
+            background-image: url('https://www.transparenttextures.com/patterns/old-paper.png');
+            color: var(--ink);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: var(--parchment);
+            border: 15px solid var(--border);
+            border-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png') 30 round;
+            padding: 30px;
+            margin: 20px;
+            max-width: 800px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px dashed var(--gold);
+            pointer-events: none;
+        }
+        
+        h1 {
+            color: var(--red);
+            text-align: center;
+            font-size: 2.5rem;
+            margin-top: 0;
+            text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+        
+        h2 {
+            color: var(--border);
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        .seal {
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            background-color: var(--red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transform: rotate(15deg);
+        }
+        
+        textarea, input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 2px solid var(--border);
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1rem;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: var(--red);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 0;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid var(--ink);
+            box-shadow: 3px 3px 0 var(--ink);
+        }
+        
+        button:hover {
+            background-color: var(--border);
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 var(--ink);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(245, 231, 193, 0.7);
+            border: 2px dashed var(--border);
+            position: relative;
+            display: none;
+        }
+        
+        .result h3 {
+            margin-top: 0;
+            color: var(--red);
+        }
+        
+        .error {
+            color: var(--red);
+            background-color: rgba(139, 0, 0, 0.1);
+            padding: 10px;
+            border-left: 4px solid var(--red);
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .inkwell {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="seal">SS</div>
+        <h1>Scriptorium Secreto</h1>
+        <p>Utilize este códice para ocultar vossas mensagens dos olhos dos inimigos, como faziam os sábios monges copistas.</p>
+        
+        <h2>Cifrar Mensagem</h2>
+        <textarea id="mensagemOriginal" placeholder="Escreva aqui vossa mensagem..."></textarea>
+        <button onclick="cifrarMensagem()">Cifrar Mensagem</button>
+        <div id="resultadoCifrado" class="result">
+            <h3>Mensagem Cifrada:</h3>
+            <p id="textoCifrado"></p>
+        </div>
+        <div id="erroCifrar" class="error"></div>
+        
+        <h2>Decifrar Mensagem</h2>
+        <textarea id="mensagemCifrada" placeholder="Cole aqui a mensagem cifrada..."></textarea>
+        <button onclick="decifrarMensagem()">Decifrar Mensagem</button>
+        <div id="resultadoDecifrado" class="result">
+            <h3>Mensagem Original:</h3>
+            <p id="textoDecifrado"></p>
+        </div>
+        <div id="erroDecifrar" class="error"></div>
+        
+        <p style="text-align: center; margin-top: 30px; font-style: italic;">
+            "As palavras são como espadas - devem ser manuseadas com cuidado"
+        </p>
+    </div>
+
+    <script>
+        // Usa o mesmo host/porta da página atual para as chamadas da API
+        const API_URL = window.location.origin;
+        
+        function mostrarErro(elemento, mensagem) {
+            const divErro = document.getElementById(elemento);
+            divErro.textContent = mensagem;
+            divErro.style.display = 'block';
+            setTimeout(() => {
+                divErro.style.display = 'none';
+            }, 5000);
+        }
+        
+        function cifrarMensagem() {
+            const mensagem = document.getElementById('mensagemOriginal').value.trim();
+            const resultado = document.getElementById('resultadoCifrado');
+            const textoCifrado = document.getElementById('textoCifrado');
+            
+            document.getElementById('erroCifrar').style.display = 'none';
+            resultado.style.display = 'none';
+            
+            if (!mensagem) {
+                mostrarErro('erroCifrar', 'Por favor, escreva uma mensagem para cifrar');
+                return;
+            }
+            
+            axios.post(`${API_URL}/encrypt`, {
+                message: mensagem
+            })
+            .then(resposta => {
+                textoCifrado.textContent = resposta.data.encrypted;
+                resultado.style.display = 'block';
+                document.getElementById('mensagemCifrada').value = resposta.data.encrypted;
+            })
+            .catch(erro => {
+                mostrarErro('erroCifrar', 'Erro ao cifrar a mensagem. O escriba deve estar distraído.');
+                console.error(erro);
+            });
+        }
+        
+        function decifrarMensagem() {
+            const mensagem = document.getElementById('mensagemCifrada').value.trim();
+            const resultado = document.getElementById('resultadoDecifrado');
+            const textoDecifrado = document.getElementById('textoDecifrado');
+            
+            document.getElementById('erroDecifrar').style.display = 'none';
+            resultado.style.display = 'none';
+            
+            if (!mensagem) {
+                mostrarErro('erroDecifrar', 'Por favor, escreva uma mensagem cifrada para decifrar');
+                return;
+            }
+            
+            axios.post(`${API_URL}/decrypt`, {
+                encrypt: mensagem
+            })
+            .then(resposta => {
+                textoDecifrado.textContent = resposta.data.decrypted;
+                resultado.style.display = 'block';
+            })
+            .catch(erro => {
+                mostrarErro('erroDecifrar', 'Erro ao decifrar a mensagem. O códice pode estar corrompido.');
+                console.error(erro);
+            });
+        }
+    </script>
+</body>
+</html>
